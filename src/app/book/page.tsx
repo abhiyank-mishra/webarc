@@ -19,11 +19,6 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import AuthModal from '@/components/AuthModal';
 
-const slots = [
-    "09:00 AM", "09:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
-    "02:00 PM", "02:30 PM", "03:00 PM", "03:30 PM", "04:00 PM", "04:30 PM"
-];
-
 export default function BookingPage() {
     const { user } = useAuth();
     const router = useRouter();
@@ -37,6 +32,39 @@ export default function BookingPage() {
         phone: ''
     });
     const [randomSlots, setRandomSlots] = useState<Record<string, number>>({});
+    const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+
+    // Fetch time slots from Firestore
+    useEffect(() => {
+        const fetchSlots = async () => {
+            try {
+                const { db } = await import('@/lib/firebase');
+                const { doc, getDoc } = await import('firebase/firestore');
+
+                const slotsDoc = await getDoc(doc(db, 'settings', 'timeSlots'));
+                
+                if (slotsDoc.exists()) {
+                    setAvailableSlots(slotsDoc.data().slots || []);
+                } else {
+                    // Fallback to default slots
+                    const defaultSlots = [
+                        "09:00 AM", "09:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
+                        "02:00 PM", "02:30 PM", "03:00 PM", "03:30 PM", "04:00 PM", "04:30 PM"
+                    ];
+                    setAvailableSlots(defaultSlots);
+                }
+            } catch (error) {
+                console.error('Error fetching slots:', error);
+                // Fallback to default slots on error
+                setAvailableSlots([
+                    "09:00 AM", "09:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
+                    "02:00 PM", "02:30 PM", "03:00 PM", "03:30 PM", "04:00 PM", "04:30 PM"
+                ]);
+            }
+        };
+
+        fetchSlots();
+    }, []);
 
     useEffect(() => {
         const slots: Record<string, number> = {};
@@ -127,7 +155,7 @@ export default function BookingPage() {
                             <div>
                                 <label className="block text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Select Time Slot</label>
                                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                                    {slots.map((slot) => {
+                                    {availableSlots.map((slot) => {
                                         const isSelected = formData.slot === slot;
                                         return (
                                             <button

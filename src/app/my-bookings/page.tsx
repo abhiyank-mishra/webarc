@@ -21,11 +21,6 @@ import { cn } from '@/lib/utils';
 import { HospitalServices } from '@/lib/services';
 import { Toast } from '@/components/Toast';
 
-const slots = [
-    "09:00 AM", "09:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
-    "02:00 PM", "02:30 PM", "03:00 PM", "03:30 PM", "04:00 PM", "04:30 PM"
-];
-
 export default function MyBookingsPage() {
     const { user, loading: authLoading } = useAuth();
     const [bookings, setBookings] = useState<any[]>([]);
@@ -42,10 +37,41 @@ export default function MyBookingsPage() {
         type: 'success',
         isVisible: false
     });
+    const [availableSlots, setAvailableSlots] = useState<string[]>([]);
 
     const showToast = (message: string, type: 'success' | 'error' | 'info') => {
         setToast({ message, type, isVisible: true });
     };
+
+    // Fetch time slots from Firestore
+    useEffect(() => {
+        const fetchSlots = async () => {
+            try {
+                const { db } = await import('@/lib/firebase');
+                const { doc, getDoc } = await import('firebase/firestore');
+
+                const slotsDoc = await getDoc(doc(db, 'settings', 'timeSlots'));
+                
+                if (slotsDoc.exists()) {
+                    setAvailableSlots(slotsDoc.data().slots || []);
+                } else {
+                    const defaultSlots = [
+                        "09:00 AM", "09:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
+                        "02:00 PM", "02:30 PM", "03:00 PM", "03:30 PM", "04:00 PM", "04:30 PM"
+                    ];
+                    setAvailableSlots(defaultSlots);
+                }
+            } catch (error) {
+                console.error('Error fetching slots:', error);
+                setAvailableSlots([
+                    "09:00 AM", "09:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
+                    "02:00 PM", "02:30 PM", "03:00 PM", "03:30 PM", "04:00 PM", "04:30 PM"
+                ]);
+            }
+        };
+
+        fetchSlots();
+    }, []);
 
     const fetchBookings = async () => {
         if (!user) return;
@@ -319,7 +345,7 @@ export default function MyBookingsPage() {
                                 <div>
                                     <label className="block text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Select New Time Slot</label>
                                     <div className="grid grid-cols-2 gap-3 max-h-64 overflow-y-auto">
-                                        {slots.map((slot) => (
+                                        {availableSlots.map((slot) => (
                                             <button
                                                 key={slot}
                                                 onClick={() => setRescheduleData({ ...rescheduleData, slot })}

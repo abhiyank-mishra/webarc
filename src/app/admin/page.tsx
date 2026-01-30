@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
     Users,
     Clock,
@@ -28,6 +28,7 @@ import {
     Area
 } from 'recharts';
 import { cn } from '@/lib/utils';
+import { Toast } from '@/components/Toast';
 
 const data = [
     { time: '08 AM', load: 12, wait: 10 },
@@ -48,7 +49,20 @@ export default function AdminPage() {
     const [queueData, setQueueData] = useState<any[]>([]);
     const [appointments, setAppointments] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'queue' | 'appointments'>('queue');
+    const [activeTab, setActiveTab] = useState<'queue' | 'appointments' | 'slots'>('queue');
+    const [timeSlots, setTimeSlots] = useState<string[]>([]);
+    const [newSlot, setNewSlot] = useState('');
+    const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info'; isVisible: boolean }>({
+        message: '',
+        type: 'success',
+        isVisible: false
+    });
+    const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; tokenId: string; tokenNumber: string }>({ isOpen: false, tokenId: '', tokenNumber: '' });
+    const [deleteSlotModal, setDeleteSlotModal] = useState<{ isOpen: boolean; slot: string }>({ isOpen: false, slot: '' });
+
+    const showToast = (message: string, type: 'success' | 'error' | 'info') => {
+        setToast({ message, type, isVisible: true });
+    };
 
     // Redirect if not admin
     useEffect(() => {
@@ -105,6 +119,36 @@ export default function AdminPage() {
             setupListener();
         }
     }, [user, isAdmin]);
+
+    // Fetch time slots from Firestore
+    useEffect(() => {
+        const fetchSlots = async () => {
+            try {
+                const { db } = await import('@/lib/firebase');
+                const { doc, getDoc, setDoc } = await import('firebase/firestore');
+
+                const slotsDoc = await getDoc(doc(db, 'settings', 'timeSlots'));
+                
+                if (slotsDoc.exists()) {
+                    setTimeSlots(slotsDoc.data().slots || []);
+                } else {
+                    // Initialize with default slots if not exists
+                    const defaultSlots = [
+                        "09:00 AM", "09:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
+                        "02:00 PM", "02:30 PM", "03:00 PM", "03:30 PM", "04:00 PM", "04:30 PM"
+                    ];
+                    await setDoc(doc(db, 'settings', 'timeSlots'), { slots: defaultSlots });
+                    setTimeSlots(defaultSlots);
+                }
+            } catch (error) {
+                console.error('Error fetching slots:', error);
+            }
+        };
+
+        if (!authLoading && user && isAdmin) {
+            fetchSlots();
+        }
+    }, [authLoading, user, isAdmin]);
 
     if (authLoading || !user || !isAdmin) {
         return (
@@ -246,6 +290,15 @@ export default function AdminPage() {
                         </span>
                     )}
                 </button>
+                <button
+                    onClick={() => setActiveTab('slots')}
+                    className={cn(
+                        "px-6 py-3 rounded-xl font-bold transition-all",
+                        activeTab === 'slots' ? "bg-primary-600 text-white shadow-lg shadow-primary-500/30" : "bg-white dark:bg-slate-900 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800"
+                    )}
+                >
+                    Manage Slots
+                </button>
             </div>
 
             {/* Content Switch */}
@@ -272,11 +325,13 @@ export default function AdminPage() {
                                     queueData.slice(0, 10).map((token) => (
                                         <QueueRow 
                                             key={token.id}
+                                            tokenId={token.id}
                                             id={token.number || 'N/A'} 
                                             dept={token.serviceName || 'Unknown'} 
                                             status={token.status === 'waiting' ? 'Waiting' : token.status === 'called' ? 'In Progress' : 'Completed'} 
                                             time={token.expectedTime ? `${token.expectedTime}m` : '--'} 
-                                            type={token.isPriority ? 'Priority' : 'Normal'} 
+                                            type={token.isPriority ? 'Priority' : 'Normal'}
+                                            onDelete={(tokenId: string, tokenNumber: string) => setDeleteModal({ isOpen: true, tokenId, tokenNumber })}
                                         />
                                     ))
                                 ) : (
@@ -290,7 +345,7 @@ export default function AdminPage() {
                         </table>
                     </div>
                 </div>
-            ) : (
+            ) : activeTab === 'appointments' ? (
                 /* Appointments Table */
                 <div className="glass-card overflow-hidden rounded-[2rem]">
                     <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
@@ -329,7 +384,186 @@ export default function AdminPage() {
                         </table>
                     </div>
                 </div>
+            ) : (
+                /* Slots Management */
+                <div className="glass-card p-8 rounded-[2rem]">
+                    <h3 className="text-2xl font-bold mb-6">Manage Time Slots</h3>
+                    
+                    {/* Add New Slot Form */}
+                    <div className="mb-8 p-6 bg-slate-50 dark:bg-slate-900 rounded-2xl">
+                        <h4 className="font-bold mb-4">Add New Time Slot</h4>
+                        <div className="flex gap-3">
+                            <input
+                                type="time"
+                                value={newSlot}
+                                onChange={(e) => {
+                                    const time = e.target.value;
+                                    const [hours, minutes] = time.split(':');
+                                    const hour = parseInt(hours);
+                                    const ampm = hour >= 12 ? 'PM' : 'AM';
+                                    const displayHour = hour % 12 || 12;
+                                    setNewSlot(`${displayHour.toString().padStart(2, '0')}:${minutes} ${ampm}`);
+                                }}
+                                className="flex-1 px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
+                            />
+                            <button
+                                onClick={async () => {
+                                    if (!newSlot) return;
+                                    try {
+                                        const { db } = await import('@/lib/firebase');
+                                        const { doc, updateDoc } = await import('firebase/firestore');
+                                        
+                                        const updatedSlots = [...timeSlots, newSlot].sort();
+                                        await updateDoc(doc(db, 'settings', 'timeSlots'), { slots: updatedSlots });
+                                        setTimeSlots(updatedSlots);
+                                        setNewSlot('');
+                                        showToast('Slot added successfully!', 'success');
+                                    } catch (error) {
+                                        console.error('Error adding slot:', error);
+                                        showToast('Failed to add slot.', 'error');
+                                    }
+                                }}
+                                className="btn-primary !py-3"
+                            >
+                                Add Slot
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Current Slots List */}
+                    <div>
+                        <h4 className="font-bold mb-4">Current Time Slots ({timeSlots.length})</h4>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                            {timeSlots.map((slot, index) => (
+                                <div key={index} className="flex items-center justify-between p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl">
+                                    <span className="font-medium">{slot}</span>
+                                    <button
+                                        onClick={() => setDeleteSlotModal({ isOpen: true, slot })}
+                                        className="text-red-500 hover:text-red-700 transition-colors"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
             )}
+
+            {/* Delete Confirmation Modal */}
+            <AnimatePresence>
+                {deleteModal.isOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                        onClick={() => setDeleteModal({ isOpen: false, tokenId: '', tokenNumber: '' })}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="glass-card p-8 rounded-3xl max-w-md w-full"
+                        >
+                            <h3 className="text-2xl font-bold mb-4">Delete Token?</h3>
+                            <p className="text-slate-600 dark:text-slate-400 mb-6">
+                                Are you sure you want to delete token <strong>{deleteModal.tokenNumber}</strong>? This action cannot be undone.
+                            </p>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setDeleteModal({ isOpen: false, tokenId: '', tokenNumber: '' })}
+                                    className="flex-1 btn-secondary"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={async () => {
+                                        try {
+                                            const { db } = await import('@/lib/firebase');
+                                            const { doc, deleteDoc } = await import('firebase/firestore');
+                                            
+                                            await deleteDoc(doc(db, 'tokens', deleteModal.tokenId));
+                                            setDeleteModal({ isOpen: false, tokenId: '', tokenNumber: '' });
+                                            showToast('Token deleted successfully!', 'success');
+                                        } catch (error) {
+                                            console.error('Error deleting token:', error);
+                                            showToast('Failed to delete token.', 'error');
+                                        }
+                                    }}
+                                    className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-xl transition-all"
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Delete Slot Confirmation Modal */}
+            <AnimatePresence>
+                {deleteSlotModal.isOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                        onClick={() => setDeleteSlotModal({ isOpen: false, slot: '' })}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="glass-card p-8 rounded-3xl max-w-md w-full"
+                        >
+                            <h3 className="text-2xl font-bold mb-4">Delete Time Slot?</h3>
+                            <p className="text-slate-600 dark:text-slate-400 mb-6">
+                                Are you sure you want to delete the <strong>{deleteSlotModal.slot}</strong> time slot? This will affect future bookings.
+                            </p>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setDeleteSlotModal({ isOpen: false, slot: '' })}
+                                    className="flex-1 btn-secondary"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={async () => {
+                                        try {
+                                            const { db } = await import('@/lib/firebase');
+                                            const { doc, updateDoc } = await import('firebase/firestore');
+                                            
+                                            const updatedSlots = timeSlots.filter((s) => s !== deleteSlotModal.slot);
+                                            await updateDoc(doc(db, 'settings', 'timeSlots'), { slots: updatedSlots });
+                                            setTimeSlots(updatedSlots);
+                                            setDeleteSlotModal({ isOpen: false, slot: '' });
+                                            showToast('Slot deleted successfully!', 'success');
+                                        } catch (error) {
+                                            console.error('Error deleting slot:', error);
+                                            showToast('Failed to delete slot.', 'error');
+                                        }
+                                    }}
+                                    className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-xl transition-all"
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <Toast 
+                message={toast.message}
+                type={toast.type}
+                isVisible={toast.isVisible}
+                onClose={() => setToast(prev => ({ ...prev, isVisible: false }))}
+            />
         </div>
     );
 }
@@ -388,7 +622,7 @@ function CounterStatus({ name, service, active, load }: any) {
     );
 }
 
-function QueueRow({ id, dept, status, time, type }: any) {
+function QueueRow({ tokenId, id, dept, status, time, type, onDelete }: any) {
     return (
         <tr className="group hover:bg-slate-50/50 dark:hover:bg-slate-900/50 transition-colors">
             <td className="px-8 py-5">
@@ -416,8 +650,14 @@ function QueueRow({ id, dept, status, time, type }: any) {
             </td>
             <td className="px-8 py-5 text-sm font-bold">{time}</td>
             <td className="px-8 py-5">
-                <button className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
-                    <MoreVertical className="h-4 w-4 text-slate-400" />
+                <button 
+                    onClick={() => onDelete(tokenId, id)}
+                    className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors text-red-500 hover:text-red-700"
+                    title="Delete Token"
+                >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
                 </button>
             </td>
         </tr>
@@ -427,42 +667,47 @@ function QueueRow({ id, dept, status, time, type }: any) {
 function AppointmentRow({ data }: any) {
     const handleApprove = async () => {
         const { db } = await import('@/lib/firebase');
-        const { doc, updateDoc } = await import('firebase/firestore');
+        const { doc, updateDoc, collection, addDoc } = await import('firebase/firestore');
         
-        // 1. Update status in Firestore
         try {
+            // 1. Update status in Firestore
             await updateDoc(doc(db, 'appointments', data.id), {
                 status: 'approved'
             });
             
-            // 2. Open Email Client (mailto)
-            const subject = encodeURIComponent(`Appointment Confirmed - HealthPoint`);
-            const body = encodeURIComponent(`
-Dear ${data.name},
-
-Your appointment at HealthPoint has been confirmed.
-
-Details:
-Service: ${data.serviceName}
-Date: ${new Date(data.date).toLocaleDateString()}
-Time Slot: ${data.slot}
-
-Please arrive 15 minutes early.
-
-Regards,
-HealthPoint Admin
-            `);
+            // 2. Send email via Firebase Extension (mail collection)
+            await addDoc(collection(db, 'mail'), {
+                to: data.userEmail,
+                message: {
+                    subject: 'Appointment Confirmed - HealthPoint',
+                    html: `
+                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                            <h2 style="color: #4F46E5;">Appointment Confirmed!</h2>
+                            <p>Dear ${data.name},</p>
+                            <p>Your appointment at <strong>HealthPoint</strong> has been confirmed.</p>
+                            
+                            <div style="background: #F3F4F6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                                <h3 style="margin-top: 0;">Appointment Details</h3>
+                                <p><strong>Service:</strong> ${data.serviceName}</p>
+                                <p><strong>Date:</strong> ${new Date(data.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                                <p><strong>Time Slot:</strong> ${data.slot}</p>
+                                <p><strong>Phone:</strong> ${data.phone}</p>
+                            </div>
+                            
+                            <p style="color: #DC2626;"><strong>Important:</strong> Please arrive 15 minutes before your scheduled time.</p>
+                            
+                            <p>If you need to reschedule or cancel, please visit your account dashboard.</p>
+                            
+                            <p>Best regards,<br><strong>HealthPoint Team</strong></p>
+                        </div>
+                    `
+                }
+            });
             
-            // Only open mailto if userEmail exists. If only phone, maybe open WhatsApp? (Optional future enhancement)
-             if (data.userEmail) {
-                window.location.href = `mailto:${data.userEmail}?subject=${subject}&body=${body}`;
-            } else {
-                alert('Appointment approved! No email found for this user to send notification.');
-            }
-
+            alert('Appointment approved! Email will be sent shortly.');
         } catch (error) {
-            console.error('Error approving appointment:', error);
-            alert('Failed to approve appointment');
+            console.error('Error approving:', error);
+            alert('Failed to approve appointment.');
         }
     };
 
