@@ -24,8 +24,8 @@ export default function Home() {
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/quick-token" className="btn-primary flex items-center group w-full sm:w-auto justify-center">
-                Get Quick Token
+              <Link href="/quick-token" className="btn-emergency flex items-center group w-full sm:w-auto justify-center">
+                Emergency
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link href="/check-status" className="btn-secondary w-full sm:w-auto">

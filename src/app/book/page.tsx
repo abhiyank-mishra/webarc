@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HospitalServices } from '@/lib/services';
 import {
@@ -25,6 +26,7 @@ const slots = [
 
 export default function BookingPage() {
     const { user } = useAuth();
+    const router = useRouter();
     const [step, setStep] = useState(1);
     const [showAuthModal, setShowAuthModal] = useState(false);
     const [formData, setFormData] = useState({
@@ -34,6 +36,15 @@ export default function BookingPage() {
         name: '',
         phone: ''
     });
+    const [randomSlots, setRandomSlots] = useState<Record<string, number>>({});
+
+    useEffect(() => {
+        const slots: Record<string, number> = {};
+        HospitalServices.forEach(s => {
+            slots[s.id] = Math.floor(Math.random() * 5) + 3;
+        });
+        setRandomSlots(slots);
+    }, []);
 
     const selectedService = HospitalServices.find(s => s.id === formData.serviceId);
 
@@ -73,7 +84,7 @@ export default function BookingPage() {
                                     )}
                                 >
                                     <h3 className="font-bold text-lg">{service.name}</h3>
-                                    <p className="text-sm text-slate-500">Available slots: {Math.floor(Math.random() * 5) + 3}</p>
+                                    <p className="text-sm text-slate-500">Available slots: {randomSlots[service.id] || '--'}</p>
                                 </button>
                             ))}
                         </div>
@@ -198,7 +209,7 @@ export default function BookingPage() {
                                 onClick={async () => {
                                     // Check if user is authenticated
                                     if (!user) {
-                                        setShowAuthModal(true);
+                                        router.push('/login?redirect=/book');
                                         return;
                                     }
 

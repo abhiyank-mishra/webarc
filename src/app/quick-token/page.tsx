@@ -28,7 +28,7 @@ const IconMap: any = {
     Beaker
 };
 
-export default function QuickTokenPage() {
+export default function EmergencyTokenPage() {
     const [step, setStep] = useState(1);
     const [selectedService, setSelectedService] = useState<any>(null);
     const [isPriority, setIsPriority] = useState(false);
@@ -96,8 +96,8 @@ export default function QuickTokenPage() {
                             className="space-y-8"
                         >
                             <div className="text-center">
-                                <h1 className="text-3xl font-bold mb-2">Which department do you need?</h1>
-                                <p className="text-slate-500">Pick a department and get your token number instantly.</p>
+                                <h1 className="text-3xl font-bold mb-2">Emergency Department Select</h1>
+                                <p className="text-slate-500">Pick a department for immediate emergency token generation.</p>
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -159,17 +159,17 @@ export default function QuickTokenPage() {
                                         onChange={(e) => setIsPriority(e.target.checked)}
                                     />
                                     <div className="ml-4 text-left">
-                                        <p className="font-bold">I Need Priority</p>
-                                        <p className="text-sm text-slate-500">Senior Citizen (60+) or Emergency</p>
+                                        <p className="font-bold text-red-600">This is a Critical Emergency</p>
+                                        <p className="text-sm text-slate-500">Life-threatening or severe condition</p>
                                     </div>
                                 </label>
                             </div>
 
                             <button
                                 onClick={handleGenerateToken}
-                                className="btn-primary w-full py-4 text-lg"
+                                className="btn-emergency w-full py-4 text-lg"
                             >
-                                Generate My Token
+                                Generate Emergency Token
                             </button>
                         </motion.div>
                     )}
@@ -188,7 +188,7 @@ export default function QuickTokenPage() {
                             </div>
 
                             <div className="bg-white dark:bg-slate-900 overflow-hidden rounded-[2rem] shadow-2xl border border-slate-200 dark:border-slate-800">
-                                <div className="bg-primary-600 p-8 text-center text-white">
+                                <div className="bg-red-600 p-8 text-center text-white">
                                     <p className="text-sm font-medium uppercase tracking-widest opacity-80 mb-2">Token Number</p>
                                     <h3 className="text-6xl font-black tracking-tighter">{tokenData.number}</h3>
                                 </div>

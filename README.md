@@ -1,36 +1,89 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# HealthPoint - Smart Queue Intelligence
 
-## Getting Started
+HealthPoint is a next-generation patient experience platform designed to revolutionize hospital waiting rooms. It solves the problem of unpredictable waiting times by providing real-time queue intelligence and a seamless appointment booking flow.
 
-First, run the development server:
+Built for the **WebX** event under **Technavya**, hosted at **GLA University, Mathura**.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 Key Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Smart Queue Intelligence**: Real-time tracking of patient flow and department load.
+- **Instant Token Generation**: "Quick Token" feature for walk-in patients with zero signup required.
+- **Admin Command Center**: A powerful dashboard for hospital administrators to monitor live activity, manage staff presence, and approve appointment requests.
+- **Secure Authentication**: Google-integrated login for administrators and verified appointment bookings.
+- **Predictive Wait Times**: Smart algorithms that estimate waiting periods based on live staff activity.
+- **Appointment Approval**: Dedicated workflow for admins to confirm bookings with automated email notifications.
+- **Premium UI/UX**: A state-of-the-art, glassmorphism-inspired design with full dark/light mode support.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 👥 Meet Team WebARC
 
-To learn more about Next.js, take a look at the following resources:
+| Name | Role |
+| :--- | :--- |
+| **Prabhu Tridev** | **Team Leader** |
+| **Abhiyank** | Core Member |
+| **Chirag** | Core Member |
+| **Shashwat Saxena** | Core Member |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**College:** GLA University, Mathura  
+**Event:** Technavya - WebX
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 🛠️ Tech Stack
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Framework**: [Next.js 15+](https://nextjs.org/) (App Router, Server Components)
+- **Database & Auth**: [Firebase](https://firebase.google.com/) (Firestore, Google Authentication)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **Animations**: [Framer Motion](https://www.framer.com/motion/)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Charts**: [Recharts](https://recharts.org/)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## 🏁 Getting Started
+
+### Prerequisites
+
+- Node.js (v18 or later)
+- Firebase Project
+
+### Installation
+
+1. **Clone the repository**:
+   ```bash
+   git clone <repository-url>
+   cd webarc
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Environment Setup**:
+   Create a `.env.local` file in the root directory and add your Firebase credentials:
+   ```env
+   NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
+   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+   NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.firebasestorage.app
+   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+   NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+   ```
+
+4. **Run the development server**:
+   ```bash
+   npm run dev
+   ```
+
+5. **Access the app**:
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
+
+## 📄 License
+
+Developed as part of the WebX competition. All rights reserved by Team WebARC.

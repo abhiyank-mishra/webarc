@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { LogIn } from 'lucide-react';
 import { Toast } from '@/components/Toast';
@@ -9,6 +9,8 @@ import { Toast } from '@/components/Toast';
 export default function LoginPage() {
     const { user, loading, isAdmin, signInWithGoogle } = useAuth();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const redirectUrl = searchParams.get('redirect') || '/';
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info'; isVisible: boolean }>({
         message: '',
         type: 'success',
@@ -20,9 +22,9 @@ export default function LoginPage() {
         if (!loading && user) {
             if (isAdmin) {
                 router.push('/admin');
+            } else if (redirectUrl !== '/') {
+                router.push(redirectUrl);
             }
-            // For normal users, we stay on page (or could redirect home)
-            // The toast will handle the welcome message
         }
     }, [user, loading, isAdmin, router]);
 
@@ -50,10 +52,8 @@ export default function LoginPage() {
 
                 // Redirect home after a delay if not admin
                 setTimeout(() => {
-                    // Check logic again in case state hasn't updated 
-                    // (though isAdmin comes from context which might lag slightly, rely on route)
-                   if (!window.location.pathname.includes('/admin')) {
-                       router.push('/');
+                   if (!isAdmin && !window.location.pathname.includes('/admin')) {
+                       router.push(redirectUrl);
                    }
                 }, 2000);
             }
