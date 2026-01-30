@@ -1,0 +1,242 @@
+Perfect. Below is a **single MASTER PROMPT** you can copy-paste into **ChatGPT / Claude / any AI website or UI generator**.
+This prompt is written **hackathon-grade**, judge-friendly, and **covers EVERYTHING**: pages, features, tech stack, logic, UX, and uniqueness.
+
+---
+
+# ✅ MASTER PROMPT (COPY–PASTE AS IT IS)
+
+---
+
+**You are a senior full-stack system architect, product designer, and hackathon mentor.
+Design a complete, production-ready web application called:**
+
+## **“Smart Appointment & Queue Intelligence System”**
+
+This is **NOT a basic appointment booking website**.
+It is an **advanced, inclusive, decision-support system** designed for **hospitals, government offices, and public service centers**, especially for **common people who are not tech-savvy**.
+
+The solution must be **100% FREE-STACK based** (no paid APIs, no paid services).
+
+---
+
+## 🎯 CORE GOAL
+
+Build a system that:
+
+* Reduces waiting time
+* Prevents overcrowding
+* Works even for users who **cannot use apps properly**
+* Shows **live, transparent, explainable queue logic**
+* Helps admins make **smart decisions**, not just bookings
+
+---
+
+## 🧠 UNIQUE INNOVATION (MUST IMPLEMENT)
+
+Unlike common systems, this platform must include:
+
+* Dynamic waiting time prediction (logic-based, no paid AI)
+* Priority-based queue management
+* Live queue visualization
+* Explainable queue decisions
+* Offline-friendly access
+* No-login quick token system
+* Admin crowd-load intelligence
+
+---
+
+## 🧩 USER ROLES
+
+Design for **3 roles**:
+
+1. **Public User (Common Man)**
+2. **Registered User (Optional)**
+3. **Admin / Staff**
+
+---
+
+## 📄 REQUIRED PAGES (WITH DETAILS)
+
+### 🔹 1. Landing Page
+
+Purpose: Explain system simply.
+
+Include:
+
+* Problem statement (crowds, long waits)
+* How the smart queue works (step-by-step visuals)
+* “Check Queue Status” button (no login)
+* “Book Appointment” button
+* Accessibility-first UI (large buttons, clear icons)
+
+---
+
+### 🔹 2. Quick Token / No-Login Page (VERY IMPORTANT)
+
+For non-tech users.
+
+Features:
+
+* Generate token without signup
+* Select service type
+* Get token number
+* QR code generated
+* Show:
+
+  * Current queue position
+  * Expected waiting time
+* Works even on low internet (cached last status)
+
+---
+
+### 🔹 3. Appointment Booking Page
+
+For users who want to book in advance.
+
+Features:
+
+* Service / department selection
+* Date & slot selection
+* Shows:
+
+  * Slot load (low / medium / high)
+  * Suggested best time
+* Booking confirmation screen
+
+---
+
+### 🔹 4. Live Queue Status Page (PUBLIC DISPLAY MODE)
+
+This page can be shown on:
+
+* TV screens
+* Public kiosks
+* Mobiles
+
+Features:
+
+* Live queue cards
+* Color coding:
+
+  * Green → next
+  * Yellow → waiting
+  * Red → delayed
+* Auto refresh
+* No login required
+
+---
+
+### 🔹 5. Queue Explanation Page (WOW FEATURE)
+
+Transparency feature.
+
+Explain:
+
+* Why user is at position X
+* Priority applied (senior / emergency)
+* Any delays
+* Real-time recalculation logic
+
+---
+
+### 🔹 6. Admin Dashboard (MOST IMPORTANT)
+
+This must look **enterprise-level**.
+
+Include:
+
+#### Admin Features:
+
+* Manage services & counters
+* Set average service time
+* Enable/disable priority rules
+* View live queue
+* Override queue (emergency cases)
+
+#### Intelligence Dashboard:
+
+* Crowd load heatmap (hour vs day)
+* Peak time detection
+* Queue overflow warnings
+* Slot utilization charts
+
+---
+
+### 🔹 7. System Settings Page
+
+* Priority rules
+* Offline mode toggle
+* Service capacity settings
+
+---
+
+## ⚙️ CORE LOGIC (NO PAID AI)
+
+### 🔸 Queue Priority Algorithm
+
+Queue reorders dynamically based on:
+
+* Emergency flag
+* Senior citizen
+* Special needs
+* Arrival time
+
+### 🔸 Waiting Time Prediction
+
+Use:
+
+* Average service time
+* People ahead in queue
+* Counter availability
+
+Display as:
+
+> “Estimated wait: 18–25 minutes”
+
+---
+
+## 🆓 REQUIRED TECHNOLOGY STACK (FREE ONLY)
+
+### Frontend
+
+* Next.js / React
+* Tailwind CSS
+* Chart.js / Recharts
+
+### Backend
+
+* Next.js API Routes OR Express
+
+### Database & Auth
+
+* Supabase (Free tier)
+
+  * Tables: users, tokens, appointments, services, queue_logs
+
+### Hosting
+
+* Vercel (Free)
+
+### Utilities
+
+* QR Code JS library
+* LocalStorage for offline caching
+
+🚫 Do NOT use:
+
+* Paid AI APIs
+* Paid SMS
+* Paid maps
+* Paid notification services
+
+---
+
+## 🎨 UI / UX REQUIREMENTS
+
+* Clean, modern, professional
+* Large buttons for common users
+* High contrast colors
+* Mobile-first
+* Clear icons
+* Minimal text, more visuals
+
