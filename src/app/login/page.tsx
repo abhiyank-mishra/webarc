@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { LogIn } from 'lucide-react';
 import { Toast } from '@/components/Toast';
 
-export default function LoginPage() {
+function LoginPageContent() {
     const { user, loading, isAdmin, signInWithGoogle } = useAuth();
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -26,7 +26,7 @@ export default function LoginPage() {
                 router.push(redirectUrl);
             }
         }
-    }, [user, loading, isAdmin, router]);
+    }, [user, loading, isAdmin, router, redirectUrl]);
 
     const showToast = (message: string, type: 'success' | 'error' | 'info') => {
         setToast({ message, type, isVisible: true });
@@ -45,7 +45,7 @@ export default function LoginPage() {
                 const name = currentUser.displayName?.split(' ')[0] || 'User';
                 
                 if (isNewUser) {
-                    showToast(`Welcome, ${name}! Your account has bees created.`, 'success');
+                    showToast(`Welcome, ${name}! Your account has been created.`, 'success');
                 } else {
                     showToast(`Welcome back, ${name}!`, 'success');
                 }
@@ -109,5 +109,17 @@ export default function LoginPage() {
                 onClose={() => setToast(prev => ({ ...prev, isVisible: false }))}
             />
         </div>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+            </div>
+        }>
+            <LoginPageContent />
+        </Suspense>
     );
 }
